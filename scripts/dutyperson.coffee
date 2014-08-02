@@ -6,12 +6,23 @@ module.exports = (robot) ->
     'taro',
     'jiro',
     'saburo',
+    'siro',
+    'goro',
+    'rokuro',
+    'nanaro',
   ]
-  assigned = robot.brain.get 'assigned'
-  if assigned == null
-    assigned =
-      turn: buildTurn (new Date('2014-08-01'))
-      user: 0
+
+  buildTurn = (date) ->
+    if date.getDay() == 0
+      date.setDate date.getDate() - 2
+    if date.getDay() == 6
+      date.setDate date.getDate() - 1
+
+    turn =
+      date.getFullYear() +
+      '-' + ('0' + (date.getMonth() + 1)).slice(-2) +
+      '-' + ('0' + date.getDate()).slice(-2)
+
 
   forwardUser = ->
     assigned.user++
@@ -25,26 +36,38 @@ module.exports = (robot) ->
       assigned.user = userList.length - 1
     robot.brain.set 'assigned', assigned
 
-  buildTurn = (date) ->
-    turn =
-      date.getFullYear() +
-      '-' + ('0' + (date.getMonth() + 1)).slice(-2) +
-      '-' + date.getDay()
+  refreshAssigned = (str_now) ->
+    currentTurn = buildTurn (new Date(str_now))
+    if currentTurn != assigned.turn
+      assigned.turn = currentTurn
+      forwardUser()
 
-  robot.respond /hoge$/i, (msg) ->
+  noticeAssigned = (msg) ->
+    msg.send assigned.turn
     msg.send userList[assigned.user]
+
+  assigned = robot.brain.get 'assigned'
+  if assigned == null
+    assigned =
+      turn: buildTurn (new Date())
+      user: 0
 
   robot.respond /skip$/i, (msg) ->
     forwardUser()
-    msg.send userList[assigned.user]
+    noticeAssigned msg
 
   robot.respond /back$/i, (msg) ->
     backUser()
-    msg.send userList[assigned.user]
+    noticeAssigned msg
 
-  robot.respond /bset$/i, (msg) ->
-    robot.brain.set 'assigned', assigned
+  robot.respond /duty person$/i, (msg) ->
+    noticeAssigned msg
 
-  robot.respond /bget$/i, (msg) ->
-    console.log assigned
+  robot.respond /refresh$/i, (msg) ->
+    refreshAssigned (new Date()).toString()
+    noticeAssigned msg
+
+  robot.respond /set now ([-0-9]+)$/i, (msg) ->
+    refreshAssigned msg.match[1]
+    noticeAssigned msg
 
