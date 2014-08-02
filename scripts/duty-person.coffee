@@ -22,51 +22,50 @@ module.exports = (robot) ->
   # Returns ID of the every single duty day.
   # If there is no duty at the day, this function should return null.
   # If it is weekly duty, this function should return same ID while week, and change it when next week comes.
-  buildDayId = (date) ->
+  buildTurnId = (date) ->
     if date.getDay() == 0
       return null
     if date.getDay() == 6
       return null
 
-    turn =
-      date.getFullYear() +
+    return date.getFullYear() +
       '-' + ('0' + (date.getMonth() + 1)).slice(-2) +
       '-' + ('0' + date.getDate()).slice(-2)
 
   today = new Date()
 
   forwardUser = ->
-    assigned.user++
-    if assigned.user >= userList.length
-      assigned.user = 0
-    robot.brain.set 'assigned', assigned
+    assignResult.user++
+    if assignResult.user >= userList.length
+      assignResult.user = 0
+    robot.brain.set 'assignResult', assignResult
 
   backUser = ->
-    assigned.user--
-    if assigned.user < 0
-      assigned.user = userList.length - 1
-    robot.brain.set 'assigned', assigned
+    assignResult.user--
+    if assignResult.user < 0
+      assignResult.user = userList.length - 1
+    robot.brain.set 'assignResult', assignResult
 
   refreshAssigned = ->
-    previousTurn = assigned.turn
-    assigned.turn = buildDayId today
-    if assigned.turn == null
+    previousTurn = assignResult.turnId
+    assignResult.turnId = buildTurnId today
+    if assignResult.turnId == null
       # nothing
-    else if previousTurn != assigned.turn
+    else if previousTurn != assignResult.turnId
       forwardUser()
-    robot.brain.set 'assigned', assigned
+    robot.brain.set 'assignResult', assignResult
 
   noticeAssigned = (msg) ->
-    if assigned.turn == null
-      msg.send "No duty today. Previous duty person was #{userList[assigned.user]}."
+    if assignResult.turnId == null
+      msg.send "No duty today. Previous duty person was #{userList[assignResult.user]}."
       return
-    msg.send "#{userList[assigned.user]} is today's duty person. (#{assigned.turn})"
+    msg.send "#{userList[assignResult.user]} is today's duty person. (#{assignResult.turnId})"
 
-  assigned = robot.brain.get 'assigned'
-  console.log robot.brain.get 'assigned'
-  if assigned == null
-    assigned =
-      turn: buildDayId today
+  assignResult = robot.brain.get 'assignResult'
+  console.log robot.brain.get 'assignResult'
+  if assignResult == null
+    assignResult =
+      turnId: buildTurnId today
       user: 0
 
   robot.respond /who has duty$/i, (msg) ->
@@ -74,12 +73,12 @@ module.exports = (robot) ->
     noticeAssigned msg
 
   robot.respond /skip duty person$/i, (msg) ->
-    msg.send "bye #{userList[assigned.user]}."
+    msg.send "bye #{userList[assignResult.user]}."
     forwardUser()
     noticeAssigned msg
 
   robot.respond /back duty person$/i, (msg) ->
-    msg.send "bye #{userList[assigned.user]}."
+    msg.send "bye #{userList[assignResult.user]}."
     backUser()
     noticeAssigned msg
 
