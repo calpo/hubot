@@ -24,10 +24,8 @@ module.exports = (robot) ->
   # If it is weekly duty, this function should return same ID while week, and change it when next week comes.
   buildDayId = (date) ->
     if date.getDay() == 0
-      #date.setDate date.getDate() - 2
       return null
     if date.getDay() == 6
-      #date.setDate date.getDate() - 1
       return null
 
     turn =
@@ -35,6 +33,7 @@ module.exports = (robot) ->
       '-' + ('0' + (date.getMonth() + 1)).slice(-2) +
       '-' + ('0' + date.getDate()).slice(-2)
 
+  today = new Date()
 
   forwardUser = ->
     assigned.user++
@@ -48,9 +47,9 @@ module.exports = (robot) ->
       assigned.user = userList.length - 1
     robot.brain.set 'assigned', assigned
 
-  refreshAssigned = (str_now) ->
+  refreshAssigned = ->
     previousTurn = assigned.turn
-    assigned.turn = buildDayId (new Date(str_now))
+    assigned.turn = buildDayId today
     if assigned.turn == null
       # nothing
     else if previousTurn != assigned.turn
@@ -64,27 +63,29 @@ module.exports = (robot) ->
     msg.send "#{userList[assigned.user]} is today's duty person. (#{assigned.turn})"
 
   assigned = robot.brain.get 'assigned'
+  console.log robot.brain.get 'assigned'
   if assigned == null
     assigned =
-      turn: buildDayId (new Date())
+      turn: buildDayId today
       user: 0
 
+  robot.respond /who has duty$/i, (msg) ->
+    refreshAssigned()
+    noticeAssigned msg
+
   robot.respond /skip duty person$/i, (msg) ->
+    msg.send "bye #{userList[assigned.user]}."
     forwardUser()
     noticeAssigned msg
 
   robot.respond /back duty person$/i, (msg) ->
+    msg.send "bye #{userList[assigned.user]}."
     backUser()
     noticeAssigned msg
 
-  robot.respond /who has duty$/i, (msg) ->
-    noticeAssigned msg
+  robot.respond /fake date to ([-0-9]+)$/i, (msg) ->
+    today = new Date msg.match[1]
 
-  robot.respond /refresh$/i, (msg) ->
-    refreshAssigned (new Date()).toString()
-    noticeAssigned msg
-
-  robot.respond /set now ([-0-9]+)$/i, (msg) ->
-    refreshAssigned msg.match[1]
-    noticeAssigned msg
+  robot.respond /reset faked date$/i, (msg) ->
+    today = new Date()
 
