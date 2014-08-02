@@ -3,9 +3,9 @@
 #   It makes daily rotation. And tells who shourd pay the price.
 #
 # Commands:
-#   hubot who has duty - Reply person who has duty
-#   hubot skip duty person - Assign next user as duty person.
-#   hubot back duty person - Assign previous user as duty person.
+#   hubot who is duty person - Reply person whom duty calls.
+#   hubot skip duty person - Assign next user.
+#   hubot back duty person - Assign previous user.
 
 module.exports = (robot) ->
   # RoomID
@@ -100,7 +100,7 @@ module.exports = (robot) ->
     sendMessage roomId, getNotificationMessage()
   ).start()
 
-  robot.respond /duty person$/i, (msg) ->
+  robot.respond /who is duty person$/i, (msg) ->
     refreshAssigned()
     msg.send getNotificationMessage()
 

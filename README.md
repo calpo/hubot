@@ -3,10 +3,28 @@
 ### 参考
 http://www.mrlittlebig.com/blog/057/
 
+### 環境変数
+HipChatのルーム管理ページなどで確認
+```
+export HUBOT_HIPCHAT_TOKEN="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export HUBOT_HIPCHAT_JID="xxxxxxx_xxxxxxx@chat.hipchat.com"
+export HUBOT_HIPCHAT_PASSWORD="xxxxxxxxxxxx"
+export HUBOT_HIPCHAT_ROOMS="xxxxxxxxx_xxxxxxx@conf.hipchat.com"
+export HUBOT_LOG_LEVEL=""
+export FILE_BRAIN_PATH="/tmp"
+```
+
 ### デバッグ
-#### 手元でhipchat連携起動するには
-source bin/environments.sh
-bin/hipchat -a hipchat -n hubot
+#### hipchatに接続
+```
+$ source bin/environments.sh
+$ bin/hipchat -a hipchat -n hubot
+```
+#### 手元でデバッグ
+```
+$ source bin/environments.sh
+$ bin/hipchat -n hubot
+```
 
 ### アカウント
 hubot = calpo22+hubot@gmail.com
