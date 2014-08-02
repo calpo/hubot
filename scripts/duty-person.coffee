@@ -8,9 +8,12 @@
 #   hubot back duty person - Assign previous user as duty person.
 
 module.exports = (robot) ->
+  # RoomID
+  roomId = process.env.HUBOT_HIPCHAT_ROOMS
+
   # Duty will call them.
   userList = [
-    'taro',
+    'ichiro',
     'jiro',
     'saburo',
     'siro',
@@ -33,6 +36,7 @@ module.exports = (robot) ->
       '-' + ('0' + date.getDate()).slice(-2)
 
   today = new Date()
+  isDateFaked = false
 
   forwardUser = ->
     assignResult = getAssignResult()
@@ -61,12 +65,11 @@ module.exports = (robot) ->
     robot.brain.data.assignResult = assignResult
     robot.brain.save()
 
-  noticeAssigned = (msg) ->
+  getNotificationMessage = ->
     assignResult = getAssignResult()
     if assignResult.turnId == null
-      msg.send "No duty today. Previous duty person was #{userList[assignResult.user]}."
-      return
-    msg.send "#{userList[assignResult.user]} is today's duty person. (#{assignResult.turnId})"
+      return "No duty today. Previous duty person was #{userList[assignResult.user]}."
+    return "#{userList[assignResult.user]} is today's duty person. (#{assignResult.turnId})"
 
   getAssignResult = ->
     assignResult = robot.brain.data.assignResult || null
@@ -76,25 +79,50 @@ module.exports = (robot) ->
         user: 0
     return assignResult
 
-  robot.respond /who has duty$/i, (msg) ->
+  sendMessage = (room, msg) ->
+    response = new robot.Response(
+      robot, {
+        user : {id : -1},
+        text : "none",
+        done : false,
+        room: room
+      }, [
+      ]
+    )
+    response.send msg
+
+  cronJob = require('cron').CronJob
+  # *(sec) *(min) *(hour) *(day) *(month) *(day of the week)
+  new cronJob('*/10 * * * * *', () ->
+    if isDateFaked == false
+      today = new Date()
     refreshAssigned()
-    noticeAssigned msg
+    sendMessage roomId, getNotificationMessage()
+  ).start()
+
+  robot.respond /duty person$/i, (msg) ->
+    refreshAssigned()
+    msg.send getNotificationMessage()
 
   robot.respond /skip duty person$/i, (msg) ->
     assignResult = getAssignResult()
     msg.send "bye #{userList[assignResult.user]}."
     forwardUser()
-    noticeAssigned msg
+    msg.send getNotificationMessage()
 
   robot.respond /back duty person$/i, (msg) ->
     assignResult = getAssignResult()
     msg.send "bye #{userList[assignResult.user]}."
     backUser()
-    noticeAssigned msg
+    msg.send getNotificationMessage()
 
   robot.respond /fake date to ([-0-9]+)$/i, (msg) ->
     today = new Date msg.match[1]
+    isDateFaked = true
+    msg.send "Today is #{today.toLocaleString()}"
 
   robot.respond /reset faked date$/i, (msg) ->
     today = new Date()
+    isDateFaked = false
+    msg.send "Today is #{today.toLocaleString()}"
 
