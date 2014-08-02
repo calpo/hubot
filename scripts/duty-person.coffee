@@ -35,49 +35,59 @@ module.exports = (robot) ->
   today = new Date()
 
   forwardUser = ->
+    assignResult = getAssignResult()
     assignResult.user++
     if assignResult.user >= userList.length
       assignResult.user = 0
-    robot.brain.set 'assignResult', assignResult
+    robot.brain.data.assignResult = assignResult
+    robot.brain.save()
 
   backUser = ->
+    assignResult = getAssignResult()
     assignResult.user--
     if assignResult.user < 0
       assignResult.user = userList.length - 1
-    robot.brain.set 'assignResult', assignResult
+    robot.brain.data.assignResult = assignResult
+    robot.brain.save()
 
   refreshAssigned = ->
+    assignResult = getAssignResult()
     previousTurn = assignResult.turnId
     assignResult.turnId = buildTurnId today
     if assignResult.turnId == null
       # nothing
     else if previousTurn != assignResult.turnId
       forwardUser()
-    robot.brain.set 'assignResult', assignResult
+    robot.brain.data.assignResult = assignResult
+    robot.brain.save()
 
   noticeAssigned = (msg) ->
+    assignResult = getAssignResult()
     if assignResult.turnId == null
       msg.send "No duty today. Previous duty person was #{userList[assignResult.user]}."
       return
     msg.send "#{userList[assignResult.user]} is today's duty person. (#{assignResult.turnId})"
 
-  assignResult = robot.brain.get 'assignResult'
-  console.log robot.brain.get 'assignResult'
-  if assignResult == null
-    assignResult =
-      turnId: buildTurnId today
-      user: 0
+  getAssignResult = ->
+    assignResult = robot.brain.data.assignResult || null
+    if assignResult == null
+      assignResult =
+        turnId: buildTurnId today
+        user: 0
+    return assignResult
 
   robot.respond /who has duty$/i, (msg) ->
     refreshAssigned()
     noticeAssigned msg
 
   robot.respond /skip duty person$/i, (msg) ->
+    assignResult = getAssignResult()
     msg.send "bye #{userList[assignResult.user]}."
     forwardUser()
     noticeAssigned msg
 
   robot.respond /back duty person$/i, (msg) ->
+    assignResult = getAssignResult()
     msg.send "bye #{userList[assignResult.user]}."
     backUser()
     noticeAssigned msg
