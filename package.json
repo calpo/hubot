@@ -33,7 +33,8 @@
     "hubot-scripts": "*",
     "hubot-thecat": "*",
     "iconv": "*",
+    "phantomjs": "^1.9.15",
     "request": "*",
-    "request": "*"
+    "webdriverio": "^3.3.0"
   }
 }
