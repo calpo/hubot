@@ -1,6 +1,7 @@
 #!/bin/sh
 
 cd `dirname $0`
+cd ..
 
-source ./environments.sh
-./hubot -a hipchat -n hubot
+source ./bin/environments.sh
+./bin/hubot -a hipchat -n hubot
