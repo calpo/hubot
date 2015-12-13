@@ -4,11 +4,27 @@
  */
 
 
+/*
+// ローカルでwebdriver立てる場合
 var options = {
     desiredCapabilities: {
         browserName: 'firefox'
     }
 };
+*/
+
+// browser stack の場合
+var options = {
+    desiredCapabilities: {
+        browserName: 'firefox'
+    },
+    host: 'hub.browserstack.com',
+    port: 80,
+    // https://www.browserstack.com/accounts/automate でuser/key確認
+    user : process.env.BROWSERSTACK_USERNAME,
+    key: process.env.BROWSERSTACK_ACCESS_KEY
+};
+
 var webdriverio = require('webdriverio');
 
 /*
