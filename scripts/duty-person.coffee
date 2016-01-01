@@ -92,13 +92,13 @@ module.exports = (robot) ->
     response.send msg
 
   cronJob = require('cron').CronJob
-  # *(sec) *(min) *(hour) *(day) *(month) *(day of the week)
-  new cronJob('*/10 * * * * *', () ->
-    if isDateFaked == false
-      today = new Date()
-    refreshAssigned()
-    sendMessage roomId, getNotificationMessage()
-  ).start()
+#  # *(sec) *(min) *(hour) *(day) *(month) *(day of the week)
+#  new cronJob('*/10 * * * * *', () ->
+#    if isDateFaked == false
+#      today = new Date()
+#    refreshAssigned()
+#    sendMessage roomId, getNotificationMessage()
+#  ).start()
 
   robot.respond /who is duty person$/i, (msg) ->
     refreshAssigned()
