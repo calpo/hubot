@@ -16,7 +16,8 @@ var options = {
 // browser stack の場合
 var options = {
     desiredCapabilities: {
-        browserName: 'firefox'
+        'browserName' : 'firefox',
+        'browserstack.local' : 'true'
     },
     host: 'hub.browserstack.com',
     port: 80,
